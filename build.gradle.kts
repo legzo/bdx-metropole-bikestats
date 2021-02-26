@@ -23,7 +23,7 @@ dependencies {
     implementation("org.http4k:http4k-core:${http4kVersion}")
     implementation("org.http4k:http4k-format-jackson:${http4kVersion}")
     implementation("org.http4k:http4k-opentelemetry:${http4kVersion}")
-    implementation("org.http4k:http4k-server-jetty:${http4kVersion}")
+    implementation("org.http4k:http4k-server-undertow:${http4kVersion}")
     implementation("org.http4k:http4k-cloudnative:${http4kVersion}")
 
     testImplementation("org.http4k:http4k-testing-approval:${http4kVersion}")
@@ -47,5 +47,5 @@ tasks.withType<KotlinCompile> {
 }
 
 application {
-    mainClassName = "org.jtelabs.AppKt"
+    mainClassName = "org.jtelabs.bikestats.AppKt"
 }

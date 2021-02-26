@@ -3,10 +3,12 @@ package org.jtelabs.bikestats
 import org.http4k.core.Method.GET
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import org.http4k.server.Jetty
+import org.http4k.server.Undertow
 import org.http4k.server.asServer
 
-fun main() {
+fun main(args: Array<String>) {
+
+    val port = if (args.isNotEmpty()) args[0].toInt() else 8000
 
     val dataFetcher = DataFetcherImpl()
     val meterService = MeterServiceImpl(dataFetcher)
@@ -18,6 +20,6 @@ fun main() {
         )
     )
 
-    app.asServer(Jetty()).start().block()
+    app.asServer(Undertow(port)).start().block()
 
 }

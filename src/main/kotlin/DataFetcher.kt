@@ -19,7 +19,7 @@ class DataFetcherImpl : DataFetcher {
 
     private val httpClient = OkHttp()
     private val messageLens = Body.auto<FeatureCollection>().toLens()
-    private val apiKey = EnvironmentKey.required("api.key").extract(Environment.ENV)
+    private val apiKey = EnvironmentKey.required("API_KEY").extract(Environment.ENV)
 
     override fun fetchDataFor(
         date: LocalDate,
