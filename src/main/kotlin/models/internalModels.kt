@@ -9,6 +9,13 @@ data class MeterInfo(
     val metrics: List<MeterMetric>
 )
 
+data class VisualMeterInfo(
+    val id: MeterId,
+    val zone: ZoneId,
+    val geoCoordinates: GeoCoordinates,
+    val metricsAsGraph: List<String>
+)
+
 data class GeoCoordinates(
     val latitude: Float,
     val longitude: Float

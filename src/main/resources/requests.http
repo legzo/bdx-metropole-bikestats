@@ -1,3 +1,8 @@
 ###
+GET http://localhost:8000/api/data?date=2021-02-25
 
-GET http://localhost:8000/api/data?date=2021-02-26
+###
+GET http://localhost:8000/api/data?date=2021-02-24&meterId=Z203CT6
+
+###
+GET http://localhost:8000/api/data?date=2021-02-23&meterId=Z203CT6&mode=visual
