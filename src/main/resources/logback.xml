@@ -1,0 +1,17 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%date{HH:mm:ss.SSS}] %highlight(%-5p) [%-25.25c] %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT-simple" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%m%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
