@@ -1,18 +1,28 @@
-document.addEventListener("DOMContentLoaded", function() {
-
+function getDateParam(paramName) {
     let url = document.location.href
 
-    let match = url.match(/date=([0-9]{4}-[0-9]{2}-[0-9]{2})/i);
-    let date = (match && match[1]) || "2021-02-01";
+    let match = url.match(new RegExp(paramName + "=([0-9]{4}-[0-9]{2}-[0-9]{2})"));
+    return (match && match[1]) || undefined;
+}
 
-    fetch("/api/raw-data?date=" + date)
+document.addEventListener("DOMContentLoaded", function() {
+
+    let date = getDateParam("date");
+    let startDate = getDateParam("startDate");
+    let endDate = getDateParam("endDate");
+
+    let queryString = date ? `?date=${date}` : `startDate=${startDate}&endDate=${endDate}`
+    let title = date ? ` ${date}` : ` ${startDate} -> ${endDate}`
+
+    document.getElementById("logo").textContent += title
+
+    fetch(`/api/raw-data?${queryString}`)
         .then(response => response.json())
         .then(data => drawChartsFromData(date, data))
         .then(data => console.log(data));
 });
 
 function drawChartsFromData(date, dataForMeters) {
-    document.getElementById("logo").textContent += " > " + date
     for (let dataForMeter of dataForMeters) {
         let series = [ dataForMeter.times, dataForMeter.values ]
         makeChart(dataForMeter.id, series)

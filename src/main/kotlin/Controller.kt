@@ -23,12 +23,23 @@ class Controller(
     fun getRawMeterData(
         request: Request
     ): Response {
-        val date = request.getDate() ?: run {
-            logger.error("Date is malformed : input was: ${request.query("date")}")
-            return Response(Status.BAD_REQUEST)
+        val date = request.getDateParam("date")
+
+        val rawMeterData = if (date != null) {
+            logger.info("Call to /api/data with params : date=$date")
+            meterService.getRawMeterData(date)
+        } else {
+            val startDate = request.getDateParam("startDate")
+            val endDate = request.getDateParam("endDate")
+
+            if (startDate == null || endDate == null) {
+                logger.error("Date is malformed : input was: ${request.query("date")}")
+                return Response(Status.BAD_REQUEST)
+            }
+
+            logger.info("Call to /api/data with params : startDate=$startDate, endDate=$endDate")
+            meterService.getRawMeterData(startDate, endDate)
         }
-        logger.info("Call to /api/data with params : date=$date")
-        val rawMeterData = meterService.getRawMeterData(date)
 
         return rawDataLens.inject(rawMeterData, Response(Status.OK))
     }
@@ -38,7 +49,7 @@ class Controller(
     ): Response {
         val meterId = request.query("meterId")
         val mode = request.query("mode")
-        val date = request.getDate() ?: run {
+        val date = request.getDateParam("date") ?: run {
             logger.error("Date is malformed : input was: ${request.query("date")}")
             return Response(Status.BAD_REQUEST)
         }
@@ -57,9 +68,9 @@ class Controller(
 
     }
 
-    private fun Request.getDate() =
+    private fun Request.getDateParam(paramName: String) =
         try {
-            val dateAsString = query("date")
+            val dateAsString = query(paramName)
             LocalDate.parse(dateAsString)
         } catch (exception: Exception) {
             null

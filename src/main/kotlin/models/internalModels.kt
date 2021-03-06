@@ -34,11 +34,6 @@ data class MeterMetric(
     val time: OffsetDateTime
 )
 
-data class RawMeterMetric(
-    val bikesPer5Minutes: Float,
-    val time: Long
-)
-
 inline class MeterId(private val value: String) {
     override fun toString() = value
 }

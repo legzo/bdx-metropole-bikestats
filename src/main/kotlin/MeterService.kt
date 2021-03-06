@@ -11,6 +11,7 @@ interface MeterService {
     fun getMeterData(date: LocalDate, meterId: String?): Collection<MeterInfo>
     fun getVisualMeterData(date: LocalDate, meterId: String?): Collection<VisualMeterInfo>
     fun getRawMeterData(date: LocalDate): Collection<RawMeterInfo>
+    fun getRawMeterData(startDate: LocalDate, endDate: LocalDate): Collection<RawMeterInfo>
 }
 
 class MeterServiceImpl(
@@ -28,7 +29,22 @@ class MeterServiceImpl(
         date: LocalDate
     ): Collection<RawMeterInfo> =
         getMeterData(date, null)
-        .map { it.toRaw() }
+            .map { it.toRaw() }
+
+    override fun getRawMeterData(
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): Collection<RawMeterInfo> {
+        val featureCollection = dataFetcher.fetchDataFor(
+            startDate = startDate,
+            endDate = endDate,
+            meterId = null
+        )
+
+        return featureCollection
+            .toMeterData()
+            .map { it.toRaw() }
+    }
 
     override fun getMeterData(
         date: LocalDate,

@@ -14,6 +14,7 @@ import java.time.LocalDate
 
 interface DataFetcher {
     fun fetchDataFor(date: LocalDate, meterId: MeterId? = null): FeatureCollection
+    fun fetchDataFor(startDate: LocalDate, endDate: LocalDate, meterId: MeterId?): FeatureCollection
 }
 
 class DataFetcherImpl : DataFetcher {
@@ -25,12 +26,13 @@ class DataFetcherImpl : DataFetcher {
     private val apiKey = EnvironmentKey.required("API_KEY").extract(Environment.ENV)
 
     override fun fetchDataFor(
-        date: LocalDate,
+        startDate: LocalDate,
+        endDate: LocalDate,
         meterId: MeterId?
     ): FeatureCollection {
         val request = Request(Method.GET, "https://data.bordeaux-metropole.fr/geojson/aggregate/pc_captv_p")
-            .query("rangeStart", "${date}T00:00:00+00:00")
-            .query("rangeEnd", "${date.plusDays(1)}T00:00:00+00:00")
+            .query("rangeStart", "${startDate}T00:00:00+00:00")
+            .query("rangeEnd", "${endDate}T00:00:00+00:00")
             .query("rangeStep", "hour")
             .query("key", apiKey)
             .filterFor(meterId)
@@ -45,6 +47,13 @@ class DataFetcherImpl : DataFetcher {
 
         return messageLens(response)
     }
+
+    override fun fetchDataFor(
+        date: LocalDate,
+        meterId: MeterId?
+    ): FeatureCollection =
+        fetchDataFor(startDate = date, endDate = date.plusDays(1), meterId)
+
 
     private fun Request.filterFor(meterId: MeterId?): Request {
         return when (meterId) {
