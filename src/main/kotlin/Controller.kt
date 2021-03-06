@@ -6,9 +6,9 @@ import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.format.Jackson.auto
 import org.jtelabs.bikestats.models.MeterInfo
+import org.jtelabs.bikestats.models.RawMeterInfo
 import org.jtelabs.bikestats.models.VisualMeterInfo
 import org.slf4j.LoggerFactory
-import java.lang.Exception
 import java.time.LocalDate
 
 class Controller(
@@ -17,7 +17,21 @@ class Controller(
 
     private val logger = LoggerFactory.getLogger(javaClass)
     private val meterDataLens = Body.auto<Collection<MeterInfo>>().toLens()
+    private val rawDataLens = Body.auto<Collection<RawMeterInfo>>().toLens()
     private val visualMeterDataLens = Body.auto<Collection<VisualMeterInfo>>().toLens()
+
+    fun getRawMeterData(
+        request: Request
+    ): Response {
+        val date = request.getDate() ?: run {
+            logger.error("Date is malformed : input was: ${request.query("date")}")
+            return Response(Status.BAD_REQUEST)
+        }
+        logger.info("Call to /api/data with params : date=$date")
+        val rawMeterData = meterService.getRawMeterData(date)
+
+        return rawDataLens.inject(rawMeterData, Response(Status.OK))
+    }
 
     fun getMeterData(
         request: Request

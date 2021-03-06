@@ -1,8 +1,10 @@
 package org.jtelabs.bikestats
 
 import org.http4k.core.Method.GET
+import org.http4k.routing.ResourceLoader.Companion.Classpath
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import org.http4k.routing.static
 import org.http4k.server.Undertow
 import org.http4k.server.asServer
 
@@ -16,8 +18,10 @@ fun main(args: Array<String>) {
 
     val app = routes(
         "/api" bind routes(
-            "data" bind GET to controller::getMeterData
-        )
+            "data" bind GET to controller::getMeterData,
+            "raw-data" bind GET to controller::getRawMeterData
+        ),
+        "/" bind static(Classpath("/web"))
     )
 
     app.asServer(Undertow(port)).start().block()

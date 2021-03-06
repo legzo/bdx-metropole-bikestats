@@ -1,24 +1,16 @@
 package org.jtelabs.bikestats
 
-import org.jtelabs.bikestats.models.FeatureCollection
-import org.jtelabs.bikestats.models.FeatureProperties
-import org.jtelabs.bikestats.models.GeoCoordinates
-import org.jtelabs.bikestats.models.MeterId
-import org.jtelabs.bikestats.models.MeterInfo
-import org.jtelabs.bikestats.models.MeterMetric
-import org.jtelabs.bikestats.models.VisualMeterInfo
-import org.jtelabs.bikestats.models.ZoneId
+import org.jtelabs.bikestats.models.*
+import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
-import java.text.DecimalFormat
-
-
 
 
 interface MeterService {
     fun getMeterData(date: LocalDate, meterId: String?): Collection<MeterInfo>
     fun getVisualMeterData(date: LocalDate, meterId: String?): Collection<VisualMeterInfo>
+    fun getRawMeterData(date: LocalDate): Collection<RawMeterInfo>
 }
 
 class MeterServiceImpl(
@@ -31,6 +23,12 @@ class MeterServiceImpl(
     ): Collection<VisualMeterInfo> =
         getMeterData(date, meterId)
             .map { it.toVisual() }
+
+    override fun getRawMeterData(
+        date: LocalDate
+    ): Collection<RawMeterInfo> =
+        getMeterData(date, null)
+        .map { it.toRaw() }
 
     override fun getMeterData(
         date: LocalDate,
@@ -75,6 +73,15 @@ class MeterServiceImpl(
             metricsAsGraph = metrics.toGraph()
         )
 
+    private fun MeterInfo.toRaw() =
+        RawMeterInfo(
+            id = id,
+            zone = zone,
+            geoCoordinates = geoCoordinates,
+            times = metrics.toTimes(),
+            values = metrics.toValues()
+        )
+
     private val hourFormatter = DateTimeFormatter.ofPattern("HH")
     private val decimalFormat = DecimalFormat("00.00")
 
@@ -87,6 +94,12 @@ class MeterServiceImpl(
             "${hourFormatter.format(time)}h -> [$formattedValue] : ${"#".repeat(numberOfSymbols)}"
         }
     }
+
+    private fun List<MeterMetric>.toTimes() =
+        map { it.time.toEpochSecond() }
+
+    private fun List<MeterMetric>.toValues() =
+        map { (it.bikesPer5Minutes * 12).roundToInt() }
 
     private fun FeatureProperties.toMeterMetric(): MeterMetric {
         return MeterMetric(

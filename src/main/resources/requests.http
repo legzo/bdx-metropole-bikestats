@@ -6,3 +6,6 @@ GET http://localhost:8000/api/data?date=2021-02-24&meterId=Z203CT6
 
 ###
 GET http://localhost:8000/api/data?date=2021-02-23&meterId=Z203CT6&mode=visual
+
+###
+GET http://localhost:8000/api/raw-data?date=2021-02-25

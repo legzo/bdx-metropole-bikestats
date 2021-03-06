@@ -9,6 +9,14 @@ data class MeterInfo(
     val metrics: List<MeterMetric>
 )
 
+data class RawMeterInfo(
+    val id: MeterId,
+    val zone: ZoneId,
+    val geoCoordinates: GeoCoordinates,
+    val times: List<Long>,
+    val values: List<Int>
+)
+
 data class VisualMeterInfo(
     val id: MeterId,
     val zone: ZoneId,
@@ -24,6 +32,11 @@ data class GeoCoordinates(
 data class MeterMetric(
     val bikesPer5Minutes: Float,
     val time: OffsetDateTime
+)
+
+data class RawMeterMetric(
+    val bikesPer5Minutes: Float,
+    val time: Long
 )
 
 inline class MeterId(private val value: String) {
