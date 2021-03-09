@@ -1,4 +1,4 @@
-package org.jtelabs.bikestats
+package org.jtelabs.bikestats.backends
 
 import org.http4k.client.OkHttp
 import org.http4k.cloudnative.env.Environment
@@ -12,12 +12,11 @@ import org.jtelabs.bikestats.models.MeterId
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
-interface DataFetcher {
-    fun fetchDataFor(date: LocalDate, meterId: MeterId? = null): FeatureCollection
+interface BikeUsageFetcher {
     fun fetchDataFor(startDate: LocalDate, endDate: LocalDate, meterId: MeterId?): FeatureCollection
 }
 
-class DataFetcherImpl : DataFetcher {
+class BikeUsageFetcherImpl : BikeUsageFetcher {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -47,13 +46,6 @@ class DataFetcherImpl : DataFetcher {
 
         return messageLens(response)
     }
-
-    override fun fetchDataFor(
-        date: LocalDate,
-        meterId: MeterId?
-    ): FeatureCollection =
-        fetchDataFor(startDate = date, endDate = date.plusDays(1), meterId)
-
 
     private fun Request.filterFor(meterId: MeterId?): Request {
         return when (meterId) {

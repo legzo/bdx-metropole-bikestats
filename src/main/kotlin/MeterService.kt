@@ -1,62 +1,74 @@
 package org.jtelabs.bikestats
 
-import org.jtelabs.bikestats.models.*
+import WeatherInfo
+import org.jtelabs.bikestats.backends.BikeUsageFetcher
+import org.jtelabs.bikestats.backends.WeatherReportFetcher
+import org.jtelabs.bikestats.models.FeatureCollection
+import org.jtelabs.bikestats.models.FeatureProperties
+import org.jtelabs.bikestats.models.GeoCoordinates
+import org.jtelabs.bikestats.models.MeterId
+import org.jtelabs.bikestats.models.MeterInfo
+import org.jtelabs.bikestats.models.MeterMetric
+import org.jtelabs.bikestats.models.RawMeterInfo
+import org.jtelabs.bikestats.models.VisualMeterInfo
+import org.jtelabs.bikestats.models.ZoneId
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 
 interface MeterService {
-    fun getMeterData(date: LocalDate, meterId: String?): Collection<MeterInfo>
     fun getVisualMeterData(date: LocalDate, meterId: String?): Collection<VisualMeterInfo>
     fun getRawMeterData(date: LocalDate): Collection<RawMeterInfo>
     fun getRawMeterData(startDate: LocalDate, endDate: LocalDate): Collection<RawMeterInfo>
 }
 
 class MeterServiceImpl(
-    private val dataFetcher: DataFetcher
+    private val bikeUsageFetcher: BikeUsageFetcher,
+    private val weatherReportFetcher: WeatherReportFetcher
 ) : MeterService {
 
     override fun getVisualMeterData(
         date: LocalDate,
         meterId: String?
-    ): Collection<VisualMeterInfo> =
-        getMeterData(date, meterId)
+    ): Collection<VisualMeterInfo> {
+
+        val featureCollection = bikeUsageFetcher.fetchDataFor(
+            startDate = date,
+            endDate = date.plusDays(1),
+            meterId = meterId?.let { MeterId(it) }
+        )
+
+        return featureCollection
+            .toMeterData()
             .map { it.toVisual() }
+    }
 
     override fun getRawMeterData(
         date: LocalDate
     ): Collection<RawMeterInfo> =
-        getMeterData(date, null)
-            .map { it.toRaw() }
+        getRawMeterData(date, date.plusDays(1))
 
     override fun getRawMeterData(
         startDate: LocalDate,
         endDate: LocalDate,
     ): Collection<RawMeterInfo> {
-        val featureCollection = dataFetcher.fetchDataFor(
+        val featureCollection = bikeUsageFetcher.fetchDataFor(
             startDate = startDate,
             endDate = endDate,
             meterId = null
         )
 
-        return featureCollection
-            .toMeterData()
-            .map { it.toRaw() }
-    }
-
-    override fun getMeterData(
-        date: LocalDate,
-        meterId: String?
-    ): Collection<MeterInfo> {
-
-        val featureCollection = dataFetcher.fetchDataFor(
-            date = date,
-            meterId = meterId?.let { MeterId(it) }
+        val weatherInfo: Collection<WeatherInfo> = weatherReportFetcher.getWeatherData(
+            startDate = startDate,
+            endDate = endDate
         )
 
-        return featureCollection.toMeterData()
+        return featureCollection
+            .toMeterData()
+            .map { it.toRaw(weatherInfo) }
     }
 
     private fun FeatureCollection.toMeterData(): Collection<MeterInfo> {
@@ -89,13 +101,14 @@ class MeterServiceImpl(
             metricsAsGraph = metrics.toGraph()
         )
 
-    private fun MeterInfo.toRaw() =
+    private fun MeterInfo.toRaw(weatherInfo: Collection<WeatherInfo>) =
         RawMeterInfo(
             id = id,
             zone = zone,
             geoCoordinates = geoCoordinates,
             times = metrics.toTimes(),
-            values = metrics.toValues()
+            values = metrics.toValues(),
+            weatherValues = weatherInfo.getForMetrics(metrics)
         )
 
     private val hourFormatter = DateTimeFormatter.ofPattern("HH")
@@ -126,5 +139,16 @@ class MeterServiceImpl(
 
     private fun Float.roundOff2Decimals() = (this * 100).roundToInt() / 100f
 
+    private fun Collection<WeatherInfo>.getForMetrics(metrics: List<MeterMetric>): List<Float?> {
+        return metrics.map {
+            val timeslot = it.time.toLocalDateTime()
+            val correspondingWeatherInfo = firstOrNull { weatherInfo ->
+                weatherInfo.fields.time.toLocalDateTime() == timeslot
+            }
+
+            correspondingWeatherInfo?.fields?.rainLastHour?.let { value -> max(value, 0f) }
+        }
+    }
 }
+
 

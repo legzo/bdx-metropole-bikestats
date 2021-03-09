@@ -1,10 +1,12 @@
+package org.jtelabs.bikestats
+
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class DummyTest {
+internal class DummyTest {
 
     @Test
-    fun `should add numbers`() {
+    fun dummy() {
         1 + 1 shouldBe 2
     }
 }

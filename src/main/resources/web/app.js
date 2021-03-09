@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.getElementById("logo").textContent += title
 
-    fetch(`/api/raw-data?${queryString}`)
+    fetch(`/api/raw/data?${queryString}`)
         .then(response => response.json())
         .then(data => drawChartsFromData(date, data))
         .then(data => console.log(data));
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function drawChartsFromData(date, dataForMeters) {
     for (let dataForMeter of dataForMeters) {
-        let series = [ dataForMeter.times, dataForMeter.values ]
+        let series = [ dataForMeter.times, dataForMeter.values, dataForMeter.weatherValues ]
         makeChart(dataForMeter.id, series)
     }
 }
@@ -42,6 +42,9 @@ const cursorOpts = {
     },
 };
 
+const { stepped } = uPlot.paths;
+const _stepAfter  = stepped({align:  1});
+
 function makeChart(title, data) {
     const opts = {
         width: 300,
@@ -51,17 +54,38 @@ function makeChart(title, data) {
         scales: {
             x: {
                 time: true,
-            },
+            }
         },
         series: [
             {
                 label:  "heure",
             },
             {
-                label:  "🚲 / heure",
+                label:  "🚲 nb/h",
                 stroke: "green",
-                fill:   "rgba(0, 255, 0, 0.1)",
+                fill:   "rgba(0, 255, 0, 0.25)",
+                scale: "bikes"
+            },
+            {
+                label:  "☔️ mm/h",
+                stroke: "blue",
+                fill:   "rgba(0, 0, 255, 0.15)",
+                paths:  _stepAfter,
+                scale: "rain",
+                spanGaps: true
             }
+        ],
+        axes: [
+            {},
+            {
+                scale: "bikes"
+            },
+            {
+                side: 1,
+                scale: "rain",
+                size: 60,
+                grid: {show: false},
+            },
         ]
     };
 

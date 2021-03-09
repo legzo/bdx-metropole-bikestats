@@ -14,7 +14,8 @@ data class RawMeterInfo(
     val zone: ZoneId,
     val geoCoordinates: GeoCoordinates,
     val times: List<Long>,
-    val values: List<Int>
+    val values: List<Int>,
+    val weatherValues: List<Float?>
 )
 
 data class VisualMeterInfo(
